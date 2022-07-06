@@ -4,6 +4,7 @@
 // This file is released under the 3-clause BSD license. Note however that Linux
 // support depends on libusb, released under LGNU GPL 2.1 or later.
 
+//go:build (linux && cgo) || (darwin && !ios && cgo) || (windows && cgo)
 // +build linux,cgo darwin,!ios,cgo windows,cgo
 
 package hid
@@ -44,7 +45,8 @@ import "C"
 
 import (
 	"errors"
-	"runtime"
+	"fmt"
+	//	"runtime"
 	"sync"
 	"unsafe"
 )
@@ -163,12 +165,15 @@ func (dev *Device) Write(b []byte) (int, error) {
 		return 0, ErrDeviceClosed
 	}
 	// Prepend a HID report ID on Windows, other OSes don't need it
-	var report []byte
-	if runtime.GOOS == "windows" {
-		report = append([]byte{0x00}, b...)
-	} else {
-		report = b
-	}
+	/*
+		var report []byte
+		if runtime.GOOS == "windows" {
+			report = append([]byte{0x00}, b...)
+		} else {
+			report = b
+		}
+	*/
+	report := b
 	// Execute the write operation
 	written := int(C.hid_write(device, (*C.uchar)(&report[0]), C.size_t(len(report))))
 	if written == -1 {
@@ -186,6 +191,7 @@ func (dev *Device) Write(b []byte) (int, error) {
 			return 0, errors.New("hidapi: unknown failure")
 		}
 		failure, _ := wcharTToString(message)
+		fmt.Printf("send: %v\n", report)
 		return 0, errors.New("hidapi: " + failure)
 	}
 	return written, nil
@@ -233,6 +239,7 @@ func (dev *Device) SendFeatureReport(b []byte) (int, error) {
 			return 0, errors.New("hidapi: unknown failure")
 		}
 		failure, _ := wcharTToString(message)
+		fmt.Printf("send: %v\n", b)
 		return 0, errors.New("hidapi: " + failure)
 	}
 	return written, nil
