@@ -235,7 +235,7 @@ static int usb_setup_device_iterator (io_iterator_t *deviceIterator, UInt32 loca
     /* else we can still proceed as long as the caller accounts for the possibility of other devices in the iterator */
   }
 
-  return IOServiceGetMatchingServices(kIOMasterPortDefault, matchingDict, deviceIterator);
+  return IOServiceGetMatchingServices(kIOMainPortDefault, matchingDict, deviceIterator);
 }
 
 /* Returns 1 on success, 0 on failure. */
@@ -370,7 +370,7 @@ static void darwin_hotplug_poll (void)
   /* since a kernel thread may nodify the IOInterators used for
    * hotplug notidication we can't just clear the iterators.
    * instead just wait until all IOService providers are quiet */
-  (void) IOKitWaitQuiet (kIOMasterPortDefault, &timeout);
+  (void) IOKitWaitQuiet (kIOMainPortDefault, &timeout);
 }
 
 static void darwin_clear_iterator (io_iterator_t iter) {
@@ -421,7 +421,7 @@ static void *darwin_event_thread_main (void *arg0) {
   CFRunLoopAddSource(runloop, libusb_darwin_acfls, kCFRunLoopDefaultMode);
 
   /* add the notification port to the run loop */
-  libusb_notification_port     = IONotificationPortCreate (kIOMasterPortDefault);
+  libusb_notification_port     = IONotificationPortCreate (kIOMainPortDefault);
   libusb_notification_cfsource = IONotificationPortGetRunLoopSource (libusb_notification_port);
   CFRunLoopAddSource(runloop, libusb_notification_cfsource, kCFRunLoopDefaultMode);
 
